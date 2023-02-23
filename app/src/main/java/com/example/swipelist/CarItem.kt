@@ -28,20 +28,9 @@ import kotlin.math.roundToInt
 
 private const val SWIPE_ANIMATION_DURATION = 500
 
-@Composable
-fun DraggableCarComponent(
-    modifier: Modifier = Modifier,
-    carDataItem: CarDataItem
-) {
-    Box(modifier = modifier) {
-        ActionRow()
-        DraggableCarItem(modifier = modifier, carDataItem = carDataItem)
-    }
-}
-
 @SuppressLint("UnusedTransitionTargetStateParameter")
 @Composable
-private fun DraggableCarItem(
+fun DraggableCarItem(
     modifier: Modifier = Modifier,
     carDataItem: CarDataItem
 ) {
@@ -65,8 +54,6 @@ private fun DraggableCarItem(
     )
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .fillMaxHeight()
             .offset { IntOffset(((-offsetX) - (-offsetTransition)).roundToInt(), 0) }
             .pointerInput(Unit) {
                 detectHorizontalDragGestures { change, dragAmount ->
