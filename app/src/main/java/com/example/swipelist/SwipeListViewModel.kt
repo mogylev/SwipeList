@@ -1,17 +1,29 @@
 package com.example.swipelist
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 class SwipeListViewModel : ViewModel() {
 
-
-    private var _screenState: MutableStateFlow<SwipeListState> = MutableStateFlow(
+    private var mutableScreenState: MutableStateFlow<SwipeListState> = MutableStateFlow(
         initialState()
     )
-    val screenState : StateFlow<SwipeListState> = _screenState.asStateFlow()
+    val screenState: StateFlow<SwipeListState> = mutableScreenState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            CarsDataSource.getCarsList().collect { carsList ->
+                mutableScreenState.value = screenState.value.copy(
+                    isLoading = false,
+                    carsData = carsList
+                )
+            }
+        }
+    }
 
     private fun initialState() = SwipeListState(
         isLoading = true,
@@ -19,14 +31,21 @@ class SwipeListViewModel : ViewModel() {
     )
 
     fun onDeleteClick(cardId: String) {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            CarsDataSource.onDeleteOperation(cardId)
+        }
     }
 
     fun onFavoriteClick(cardId: String) {
-        TODO("Not yet implemented")
+        viewModelScope.launch {
+            screenState.value.carsData.find { it.id == cardId }?.let {
+                CarsDataSource.onFavoriteOperation(cardId, it.isFavorite.not())
+            }
+        }
     }
 
 }
+
 data class SwipeListState(
     val isLoading: Boolean,
     val carsData: List<CarDataItem>

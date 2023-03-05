@@ -1,7 +1,5 @@
 package com.example.swipelist
 
-import android.app.DatePickerDialog
-import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -18,11 +16,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.layout.SubcomposeLayout
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.example.swipelist.ui.theme.SwipeListTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -67,11 +62,11 @@ fun SwipeListScreen(
 
     LazyColumn(
         modifier = modifier,
-        contentPadding = PaddingValues(vertical = 8.dp),
+        contentPadding = PaddingValues(8.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        items(state.carsData) { cardDataItem ->
-            DraggableCard(
+        items(key = { it.id }, items = state.carsData) { cardDataItem ->
+            DraggableCarContainer(
                 modifier = Modifier
                     .fillMaxWidth()
                     .wrapContentHeight(),
@@ -85,84 +80,31 @@ fun SwipeListScreen(
 }
 
 @Composable
-fun ActionRow(
-    modifier: Modifier = Modifier,
-    onDeleteClick: () -> Unit = {},
-    onAddFavoriteClick: () -> Unit = {}
-) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.End
-    ) {
-
-        Icon(
-            modifier = Modifier
-                .size(32.dp)
-                .clickable {
-                    onAddFavoriteClick.invoke()
-                },
-            imageVector = Icons.Filled.Favorite,
-            contentDescription = "Add Favorite"
-        )
-        Spacer(modifier = Modifier.size(16.dp))
-        Icon(
-            modifier = Modifier
-                .size(32.dp)
-                .clickable {
-                    onDeleteClick.invoke()
-                },
-            imageVector = Icons.Filled.Delete,
-            contentDescription = "Add Favorite"
-        )
-        Spacer(modifier = Modifier.size(16.dp))
-    }
-
-}
-
-@Composable
-fun DraggableCard(
+fun DraggableCarContainer(
     modifier: Modifier = Modifier,
     carDataItem: CarDataItem,
     onDeleteClick: (cardId: String) -> Unit,
     onFavoriteClick: (cardId: String) -> Unit
 ) {
-    ResizableHeightBox(modifier = modifier) {
-        ActionRow(modifier = modifier.fillMaxWidth())
-        DraggableCarItem(modifier = modifier.fillMaxWidth(), carDataItem = carDataItem)
-    }
-}
-
-/**
- * Component that equalizes the height of all child components
- * (according to the highest child) and put them on top of each other
- */
-@Composable
-fun ResizableHeightBox(modifier: Modifier = Modifier, content: @Composable () -> Unit) {
-    SubcomposeLayout(modifier = modifier) { constraints ->
-
-        val contentPlaceables = subcompose(1, content).map {
-            it.measure(constraints)
-        }
-
-        val maxSize = contentPlaceables.fold(IntSize.Zero) { currentMax, placeable ->
-            IntSize(
-                width = maxOf(currentMax.width, placeable.width),
-                height = maxOf(currentMax.height, placeable.height)
-            )
-        }
-
-        val resizedPlaceables = subcompose(2, content).map {
-            it.measure(
-                constraints.copy(minHeight = maxSize.height)
-            )
-        }
-
-        layout(maxSize.width, maxSize.height) {
-            resizedPlaceables.forEach {
-                it.place(0, 0)
+    Box(modifier = modifier.height(IntrinsicSize.Max)) {
+        ActionRow(
+            modifier = modifier
+                .fillMaxWidth()
+                .fillMaxHeight(),
+            isFavorite = carDataItem.isFavorite,
+            onAddFavoriteClick = {
+                onFavoriteClick.invoke(carDataItem.id)
+            },
+            onDeleteClick = {
+                onDeleteClick.invoke(carDataItem.id)
             }
-        }
+        )
+        DraggableCarItem(
+            modifier = modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            carDataItem = carDataItem
+        )
     }
 }
 
